@@ -18,10 +18,11 @@ amenity_model1 = ns.model('Amenity', {
 
 @ns.route('/')
 class AmenityList(Resource):
-
+    @jwt_required()
     @ns.expect(amenity_model, validate=True)
     @ns.response(201, 'Amenity successfully created')
     @ns.response(400, 'Invalid input data')
+    @ns.response(403, 'Admin privileges required')
     def post(self):
         """(Admin only) Add a new amenity."""
         facade = HBnBFacade()
@@ -36,7 +37,6 @@ class AmenityList(Resource):
 @ns.route('/<string:amenity_id>')
 class AmenityResource(Resource):
     @jwt_required()
-    @admin_required
     @ns.expect(amenity_model1, validate=True)
     @ns.response(200, 'Amenity updated successfully')
     @ns.response(404, 'Amenity not found')
@@ -53,7 +53,6 @@ class AmenityResource(Resource):
             return {'error': str(e)}, 400
 
     @jwt_required()
-    @admin_required
     @ns.response(200, 'Amenity deleted successfully')
     @ns.response(404, 'Amenity not found')
     def delete(self, amenity_id):

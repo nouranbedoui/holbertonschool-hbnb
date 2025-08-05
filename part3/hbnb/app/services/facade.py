@@ -27,7 +27,8 @@ class HBnBFacade:
         return self.user_repository.get(user_id)
 
     def get_all_users(self):
-        return self.user_repository.get_all()
+        users = self.user_repository.get_all()
+        return [user.to_dict() for user in users]
 
     def update_user(self, user_id, data):
         user = self.user_repository.get(user_id)
@@ -93,8 +94,8 @@ class HBnBFacade:
         if not user or not place:
             raise ValueError("User or Place not found.")
         review = Review(
-            text=review_data['text'],
             rating=review_data['rating'],
+            text=review_data['text'],
             user=user,
             place=place
         )
@@ -105,7 +106,8 @@ class HBnBFacade:
         return self.review_repository.get(review_id)
 
     def get_all_reviews(self):
-        return self.review_repository.get_all()
+        reviews = self.review_repository.get_all()
+        return [review.to_dict() for review in reviews]
 
     def update_review(self, review_id, data):
         review = self.review_repository.get(review_id)
@@ -119,10 +121,11 @@ class HBnBFacade:
             raise ValueError("Failed to delete review.")
         return True
     def get_reviews_by_place(self, place_id):
-        # Option 1: Query directly using SQLAlchemy
-        return self.review_repository.model.query.filter(
-            self.review_repository.model.place_id == place_id
-        ).all()
+        # Get reviews by place using the relationship
+        place = self.place_repository.get(place_id)
+        if place:
+            return [review.to_dict() for review in place.place_reviews]
+        return []
 
     # --- Amenity Methods ---
     def create_amenity(self, amenity_data):
@@ -137,8 +140,8 @@ class HBnBFacade:
         if not place:
             raise ValueError("Place not found.")
         
-        # Create the Amenity instance using the provided name.
-        amenity = Amenity(amenity_data['name'])
+        # Create the Amenity instance using the provided name and description.
+        amenity = Amenity(amenity_data['name'], amenity_data.get('description', ''))
         self.amenity_repository.add(amenity)
         
         # Associate the new amenity with the Place.

@@ -5,7 +5,7 @@ from app.models.association_tables import place_amenity_association
 
 class Amenity(BaseModel):
     """Represents an Amenity, Aggregated with Place"""
-    __tablename__ = 'amenities'
+    __tablename__ = 'Amenity'
 
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(500), nullable=True)
@@ -21,5 +21,12 @@ class Amenity(BaseModel):
         """validates amenity informations format"""
         if not self.name or self.name.strip() == "":
             raise ValueError("name is required")
-        if not self.description or self.description.strip() == "":
-            raise ValueError("description is required")
+
+    def to_dict(self):
+        """Convert the amenity instance to a dictionary"""
+        amenity_dict = super().to_dict()
+        amenity_dict.update({
+            'name': self.name,
+            'description': self.description
+        })
+        return amenity_dict

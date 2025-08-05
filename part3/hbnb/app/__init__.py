@@ -26,6 +26,9 @@ def create_app(config_class="config.DevelopmentConfig"):
     bcrypt.init_app(app)
     jwt.init_app(app)  # Register JWT middleware with the app
     
+    # Import models to ensure they are registered with SQLAlchemy
+    from app.models import User, Place, Review, Amenity
+    
     # Configure CORS to allow requests from the front-end
     CORS(app, resources={
         r"/api/v1/*": {

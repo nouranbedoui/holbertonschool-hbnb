@@ -5,7 +5,7 @@ class Config:
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL', 
-        'mysql+pymysql://root:root@localhost/hbnb'
+        'mysql+pymysql://nouran:nouran@localhost/hbnb'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

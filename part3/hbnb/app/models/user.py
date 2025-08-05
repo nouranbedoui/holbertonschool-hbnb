@@ -1,23 +1,24 @@
 from .Base_Model import BaseModel
 from app import db
-from app.persistence.repository import InMemoryRepository as database
 from datetime import datetime
 import re
 from flask_bcrypt import Bcrypt
 bcrypt = Bcrypt()
 
+def get_database():
+    from app.persistence.repository import InMemoryRepository
+    return InMemoryRepository()
 
 class User(BaseModel):
     """represents a User in the HBNB app"""
-    __tablename__ = 'users'
+    __tablename__ = 'User'
 
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    place_list = db.relationship('Place', backref='owner', lazy=True)
-    review_list = db.relationship('Review', backref='author', lazy=True)
+    # Relationships are defined in the child models to avoid conflicts
 
     def __init__(self, first_name, last_name, email, password, is_admin=False):
         super().__init__()
@@ -51,24 +52,35 @@ class User(BaseModel):
         if not re.match(email_regex, self.email):
             raise ValueError("Invalid email format")
         
+    def to_dict(self):
+        """Convert the user instance to a dictionary"""
+        user_dict = super().to_dict()
+        user_dict.update({
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'email': self.email,
+            'is_admin': self.is_admin
+        })
+        return user_dict
 
 
 class Admin(User):
     """represents an Admin, inherits from User"""
+
     def __promote(self, user_id):
-        "Updates a regular user to Admin"
-        if self.is_admin == True:
+        """Updates a regular user to Admin"""
+        if self.is_admin:
             update_date = datetime.now()
-            if database.update(self, user_id, {"is_admin": True, "update_date": update_date}) is not None:
+            if get_database().update(self, user_id, {"is_admin": True, "update_date": update_date}):
                 print("User has been promoted to Admin")
                 return True
             return False
 
     def __demote(self, user_id):
         """Updates an Admin back to regular user"""
-        if self.is_admin == False:
+        if not self.is_admin:
             update_date = datetime.now()
-            if database.update(self, user_id, {"is_admin": False, "update_date": update_date}) is not None:
+            if get_database().update(self, user_id, {"is_admin": False, "update_date": update_date}):
                 print("User is no longer an Admin")
                 return True
             return False

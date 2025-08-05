@@ -39,18 +39,12 @@ class ReviewList(Resource):
 
         existing_reviews = facade.get_reviews_by_place(review_data['place_id'])
         for review in existing_reviews:
-            if review.user.id == claims['sub']:
+            if review.get('user', {}).get('id') == claims['sub']:
                 return {'error': 'You have already reviewed this place.'}, 400
 
         try:
             new_review = facade.create_review(review_data)
-            return {
-                "id": new_review.id,
-                "text": new_review.text,
-                "rating": new_review.rating,
-                "user_id": new_review.user.id,
-                "place_id": new_review.place.id
-            }, 201
+            return new_review.to_dict(), 201
         except ValueError as e:
             return {"error": str(e)}, 400
 
@@ -58,11 +52,7 @@ class ReviewList(Resource):
     def get(self):
         facade = HBnBFacade()
         reviews = facade.get_all_reviews()
-        return [{
-            "id": review.id,
-            "text": review.text,
-            "rating": review.rating
-        } for review in reviews], 200
+        return reviews, 200
 
 @ns.route('/<string:review_id>')
 class ReviewResource(Resource):
@@ -73,13 +63,7 @@ class ReviewResource(Resource):
         review = facade.get_review(review_id)
         if not review:
             return {'error': 'Review not found'}, 404
-        return {
-            "id": review.id,
-            "text": review.text,
-            "rating": review.rating,
-            "user_id": review.user.id,
-            "place_id": review.place.id
-        }, 200
+        return review.to_dict(), 200
 
     @jwt_required()
     @ns.expect(update_review_model, validate=True)
@@ -97,13 +81,7 @@ class ReviewResource(Resource):
         update_data = ns.payload
         try:
             updated_review = facade.update_review(review_id, update_data)
-            return {"message": "Review updated successfully", "review": {
-                "id": updated_review.id,
-                "text": updated_review.text,
-                "rating": updated_review.rating,
-                "user_id": updated_review.user.id,
-                "place_id": updated_review.place.id
-            }}, 200
+            return {"message": "Review updated successfully", "review": updated_review.to_dict()}, 200
         except ValueError as e:
             return {"error": str(e)}, 400
 

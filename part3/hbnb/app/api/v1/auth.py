@@ -2,7 +2,7 @@ from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import (
     create_access_token, jwt_required, get_jwt_identity, get_jwt
 )
-from flask import request, jsonify
+from flask import request
 from app.services.facade import HBnBFacade
 
 
