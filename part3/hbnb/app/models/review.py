@@ -1,37 +1,28 @@
-# app/models/review.py
-from app.models.base_model import BaseModel
+from .Base_Model import BaseModel
 from app import db
+from sqlalchemy.dialects.postgresql import UUID
+import uuid
+
 
 class Review(BaseModel):
-    __tablename__ = 'Review'
+    """represents a Review tied to Place by Composition and dependent on User"""
+    __tablename__ = 'reviews'
     
-    text = db.Column(db.Text, nullable=False)
+    text = db.Column(db.String(500), nullable=True)
     rating = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.String(36), db.ForeignKey('User.id'), nullable=False)
-    place_id = db.Column(db.String(36), db.ForeignKey('Place.id'), nullable=False)
+    place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     
-    def __init__(self, text, rating, user, place):
-        if not text or not isinstance(text, str):
-            raise ValueError("Review text is required and must be a string.")
-        if not isinstance(rating, int) or rating < 1 or rating > 5:
-            raise ValueError("Rating must be an integer between 1 and 5.")
-        if not user:
-            raise ValueError("User must be provided.")
-        if not place:
-            raise ValueError("Place must be provided.")
-        self.text = text.strip()
+    def __init__(self, rating, text):
+        super().__init__()
         self.rating = rating
-        self.user = user   # User instance
-        self.place = place # Place instance
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'text': self.text,
-            'rating': self.rating,
-            'user_id': self.user.id if self.user else None,
-            'place_id': self.place.id if self.place else None
-        }
-    
-    def __repr__(self):
-        return f"Review(Rating: {self.rating}, Place: {self.place.title if self.place else 'N/A'}, User: {self.user.first_name if self.user else 'N/A'})"
+        self.text = text
+        self.validate_review()
+
+    def validate_review(self):
+        """Validates review informations format"""
+
+        if not isinstance(self.text, str) or not self.text.strip():
+            raise ValueError("Text is required and must be a non-empty string")
+        if not isinstance(self.rating, int) or not (1 <= self.rating <= 5):
+            raise ValueError("Rating must be an integer between 1 and 5")

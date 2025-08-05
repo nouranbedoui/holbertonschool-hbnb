@@ -1,61 +1,57 @@
-# app/models/place.py
-from app.models.base_model import BaseModel
+from .Base_Model import BaseModel
 from app import db
+from app.models.association_tables import place_amenity_association
 
-# Association table for the many-to-many relationship between Place and Amenity
-place_amenity = db.Table('Place_Amenity',
-    db.Column('place_id', db.String(36), db.ForeignKey('Place.id'), primary_key=True),
-    db.Column('amenity_id', db.String(36), db.ForeignKey('Amenity.id'), primary_key=True)
-)
 
 class Place(BaseModel):
-    __tablename__ = 'Place'
-    
-    title = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text, nullable=False)
+    """Represents a place that can be rented in the HbnB app"""
+    __tablename__ = 'places'
+
+    title = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.String(500), nullable=False)
     price = db.Column(db.Float, nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
-    owner_id = db.Column(db.String(36), db.ForeignKey('User.id'), nullable=False)
-    
-    # Relationships:
-    # One-to-many: A Place can have many reviews.
-    reviews = db.relationship('Review', backref='place', lazy=True)
-    # Many-to-many: A Place can have many amenities via the association table.
-    amenities = db.relationship('Amenity', secondary=place_amenity, backref=db.backref('places', lazy=True))
-    
-    def __init__(self, title, description, price, latitude, longitude, owner):
-        if not title or len(title) > 100:
-            raise ValueError("Title is required (max 100 characters).")
-        if not description:
-            raise ValueError("Description is required.")
-        if not isinstance(price, (int, float)) or price <= 0:
-            raise ValueError("Price must be a positive number.")
-        if not (-90.0 <= latitude <= 90.0):
-            raise ValueError("Latitude must be between -90.0 and 90.0.")
-        if not (-180.0 <= longitude <= 180.0):
-            raise ValueError("Longitude must be between -180.0 and 180.0.")
-        if not owner:
-            raise ValueError("Owner must be provided.")
-        self.title = title.strip()
-        self.description = description.strip()
-        self.price = float(price)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    review_list = db.relationship('Review', backref='reviewed_place', lazy=True)
+    associated_amenities = db.relationship('Amenity', secondary=place_amenity_association, backref='places_associated')
+
+    def __init__(self, title, description, price, latitude, longitude):
+        super().__init__()
+        self.title = title
+        self.description = description
+        self.price = price
         self.latitude = latitude
         self.longitude = longitude
-        self.owner = owner  # 'owner' is a User instance.
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'title': self.title,
-            'description': self.description,
-            'price': self.price,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-            'owner': self.owner.to_dict() if self.owner else None,
-            'amenities': [amenity.to_dict() for amenity in self.amenities if hasattr(amenity, 'to_dict')],
-            'reviews': [review.to_dict() for review in self.reviews if hasattr(review, 'to_dict')]
+        self.validate_place()
+
+    def validate_place(self):
+        """Validate place informations format"""
+        if not self.title:
+            raise ValueError("Title is required")
+        if (not self.price) or self.price <= 0:
+            raise ValueError("Price is required and must be positive")
+        if (not self.latitude) or self.latitude < -90 or self.latitude > 90:
+            raise ValueError("Latitude must be between -90 and 90")
+        if (not self.longitude) or self.longitude < -180 or self.longitude > 180:
+            raise ValueError("Longitude must be between -180 and 180")
+
+
+    def add_review(self, review):
+        """Add a review to the place."""
+        self.reviews.append(review)
+
+    def add_amenity(self, amenity):
+        """Add an amenity to the place."""
+        self.amenities.append(amenity)
+
+    def list_by_place(self):
+        """Dictionary of details for place."""
+        place_info = {
+            "title": self.title,
+            "description": self.description,
+            "price": self.price,
+            "latitude": self.latitude,
+            "longitude": self.longitude
         }
-    
-    def __repr__(self):
-        return f"Place({self.title}, Price: {self.price})"
+        return place_info

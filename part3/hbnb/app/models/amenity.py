@@ -1,24 +1,25 @@
-# app/models/amenity.py
-from app.models.base_model import BaseModel
+from .Base_Model import BaseModel
 from app import db
+from app.models.association_tables import place_amenity_association
+
 
 class Amenity(BaseModel):
-    __tablename__ = 'Amenity'
-    
-    name = db.Column(db.String(50), nullable=False)
-    
-    def __init__(self, name):
-        if not name or not isinstance(name, str):
-            raise ValueError("Amenity name is required and must be a string.")
-        if len(name) > 50:
-            raise ValueError("Amenity name must not exceed 50 characters.")
-        self.name = name.strip()
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name
-        }
-    
-    def __repr__(self):
-        return f"Amenity({self.name})"
+    """Represents an Amenity, Aggregated with Place"""
+    __tablename__ = 'amenities'
+
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(500), nullable=True)
+    associated_places = db.relationship('Place', secondary=place_amenity_association, backref='amenities_associated')
+
+    def __init__(self, name, description):
+        super().__init__()
+        self.name = name
+        self.description = description
+        self.validate_amenity()
+
+    def validate_amenity(self):
+        """validates amenity informations format"""
+        if not self.name or self.name.strip() == "":
+            raise ValueError("name is required")
+        if not self.description or self.description.strip() == "":
+            raise ValueError("description is required")
