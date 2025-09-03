@@ -1,0 +1,59 @@
+<!-- part4/place.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Details</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="images/icon.png" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">
+                <img src="images/logo.png" alt="Logo">
+            </a>
+            <a href="login.html" id="auth-link" class="login-button">Login</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="place-details">
+            <h2 id="place-name">Loading...</h2>
+            <div class="place-info">
+                <p><strong>Host:</strong> <span id="place-host">Loading...</span></p>
+                <p><strong>Price per night:</strong> $<span id="place-price">Loading...</span></p>
+                <p><strong>Description:</strong> <span id="place-description">Loading...</span></p>
+                <p><strong>Amenities:</strong> <span id="place-amenities">Loading...</span></p>
+                <button id="toggle-amenity-form" class="details-button">Add Amenity</button>
+                <!-- Add Amenity Form (hidden by default) -->
+                <div id="add-amenity" style="display: none;">
+                  <form id="amenity-form" class="form-container">
+                    <label for="amenity-name">Amenity Name:</label>
+                    <input type="text" id="amenity-name" name="amenity-name" required>
+                    <button type="submit" class="details-button">Submit Amenity</button>
+                  </form>
+                </div>
+            </div>
+            <div id="error-message" style="color: red; display: none;"></div>
+        </section>
+
+        <section id="reviews">
+            <h3>Reviews</h3>
+        </section>
+
+        <section id="add-review">
+            <h2>Add a Review</h2>
+            <button id="add-review-button" class="details-button">Go to Add Review Page</button>
+        </section>
+    </main>
+
+    <footer id="site-footer">
+        <p>© 2025 All Rights Reserved</p>
+    </footer>
+    <script src="auth.js"></script>
+    <script src="place.js"></script>
+    <script src="amenity.js"></script>
+</body>
+</html>
